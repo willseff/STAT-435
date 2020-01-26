@@ -1,5 +1,5 @@
 # STAT 435 Team 2
-# Establishing the Baseline - Analysis code
+# Establishing the Baseline (W1) - Analysis code
 
 library(ggplot2)
 
