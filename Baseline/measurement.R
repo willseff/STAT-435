@@ -4,6 +4,7 @@
 library(ggplot2)
 
 baseline.data <- read.table("Baseline.csv", header=TRUE)
+head(baseline.data)
 
 # In class, we called a "good" measurement error as less than 1/3 of the total process
 # error.
@@ -37,11 +38,18 @@ min.part <- data$partnum[which.min(data$y300)]; min.part
 max.part <- data$partnum[which.max(data$y300)]; max.part
 med.part <- data$partnum[data$y300 == median(data$y300)][1]; med.part
 
+
 # Our first go of measuring the data, just to assess whether we need a bigger sample size
 # Regardless, we'll want to measure more over multiple hours.
 # We looked at the 3 parts, just taking 8 consecutive measurements of each (that's 24 in total)
 measurement.initial <- read.table("measurement_1.csv", header=TRUE)
-head(measurement.initial)
+tail(measurement.initial)
+
+# We add our original baseline data to our sample of measurements, 
+# for 9 measurements for each part
+orig.samples <- baseline.data[baseline.data$partnum %in% c(min.part, max.part, med.part),]
+orig.samples$minute <- orig.samples$partnum
+measurement.initial <- rbind(measurement.initial, orig.samples)
 
 ggplot(data=measurement.initial, mapping=aes(y=y300, group=partnum)) +
          geom_boxplot()
@@ -56,17 +64,16 @@ summary(model)
 # Our measurement standard deviation is 1.632
 # We can construct a confidence interval:
 meas.df <- model$df.residual
-meas.sd <- summary(model)$sigma
+meas.sd <- summary(model)$sigma; meas.sd
 meas.ci.lower <- sqrt(meas.df*meas.sd^2/qchisq(0.975, meas.df)); meas.ci.lower
 meas.ci.upper <- sqrt(meas.df*meas.sd^2/qchisq(0.025, meas.df)); meas.ci.upper
-# The average for our measurement is above our 1/3 critical value of 1.515;
-# however, the 95% CI for measurement error based on our existing sample includes regions
-# lower than the 1/3 value, and above the 1/2 value that we would assign measurement eror
-# the dominant cause.
+# The variability in our measurement is above our 1/3 critical value of 1.515,
+# but the 95% CI for the true measurement error includes regions lower than the 1/3 value, 
+# and above the 1/2 value that we would assign measurement eror the dominant cause.
 # We need to tighten up our CI (by increasing sample size).
-# A reasonable metric would be that we want our CI to be less than the 3/4 distance between
-# the 1/3 and 1/2 values; then we could at least say if we're confident if it's on the more
-# dangerous, or less dangerous side.
+
+# If we can get our CI to be less than the 3/4 distance between the 1/3 and 1/2 values, 
+# we could at least say which side it leans towards.
 target.width <- (baseline.sd/2 - baseline.sd/3)*3/4; target.width
 for (prop.df in meas.df:200)
 {
@@ -76,3 +83,32 @@ for (prop.df in meas.df:200)
 }
 prop.df
 prop.ci.width
+
+measurement2 <- read.table("measurement_2.csv", header=TRUE)
+measurement.full <- rbind(measurement.initial, measurement2)
+measurement.full$partnum <- as.factor(measurement.full$partnum)
+measurement.full$period <- as.factor(c(rep(1, 24), rep(2, 8), rep(3,8), rep(2,8), rep(3,8), rep(2,8), rep(3,8)))
+
+# We can run an anova
+meas.model <- aov(y300 ~ partnum, measurement.full)
+summary(meas.model)
+meas.df <- meas.model$df.residual; meas.df
+meas.sd <- sd(resid(meas.model)); meas.sd
+meas.ci.lower <- sqrt(meas.df*meas.sd^2/qchisq(0.975, meas.df)); meas.ci.lower
+meas.ci.upper <- sqrt(meas.df*meas.sd^2/qchisq(0.025, meas.df)); meas.ci.upper
+
+plots.base <- ggplot(data=measurement.full) + 
+  theme(plot.title=element_text(hjust=0.5, face="bold"), 
+        axis.title=element_text(size=12))
+
+plots.base + geom_point(mapping=aes(y=y300, x=period, color=partnum)) +
+  ggtitle("Plot of measurements")
+
+ggplot(data=measurement.full, mapping=aes(y=y300, group=partnum)) + geom_boxplot()
+disc <- baseline.sd/sd(resid(meas.model))
+
+plots.base + geom_point(mapping=aes(y=meas.model$residuals, x=period, color=partnum))
+
+hour.model <- aov(y300 ~ partnum + period, measurement.full)
+summary(hour.model)
+
