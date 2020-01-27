@@ -42,14 +42,14 @@ med.part <- data$partnum[data$y300 == median(data$y300)][1]; med.part
 # Our first go of measuring the data, just to assess whether we need a bigger sample size
 # Regardless, we'll want to measure more over multiple hours.
 # We looked at the 3 parts, just taking 8 consecutive measurements of each (that's 24 in total)
-measurement.initial <- read.table("measurement_1.csv", header=TRUE)
-tail(measurement.initial)
+measurement1 <- read.table("measurement_1.csv", header=TRUE)
+tail(measurement1)
 
 # We add our original baseline data to our sample of measurements, 
 # for 9 measurements for each part
 orig.samples <- baseline.data[baseline.data$partnum %in% c(min.part, max.part, med.part),]
 orig.samples$minute <- orig.samples$partnum
-measurement.initial <- rbind(measurement.initial, orig.samples)
+measurement.initial <- rbind(measurement1, orig.samples)
 
 ggplot(data=measurement.initial, mapping=aes(y=y300, group=partnum)) +
          geom_boxplot()
@@ -67,6 +67,9 @@ meas.df <- model$df.residual
 meas.sd <- summary(model)$sigma; meas.sd
 meas.ci.lower <- sqrt(meas.df*meas.sd^2/qchisq(0.975, meas.df)); meas.ci.lower
 meas.ci.upper <- sqrt(meas.df*meas.sd^2/qchisq(0.025, meas.df)); meas.ci.upper
+
+proc.sd <- sqrt(baseline.sd^2 - meas.sd^2); proc.sd
+proc.sd/3; proc.sd/2
 # The variability in our measurement is above our 1/3 critical value of 1.515,
 # but the 95% CI for the true measurement error includes regions lower than the 1/3 value, 
 # and above the 1/2 value that we would assign measurement eror the dominant cause.
@@ -74,7 +77,7 @@ meas.ci.upper <- sqrt(meas.df*meas.sd^2/qchisq(0.025, meas.df)); meas.ci.upper
 
 # If we can get our CI to be less than the 3/4 distance between the 1/3 and 1/2 values, 
 # we could at least say which side it leans towards.
-target.width <- (baseline.sd/2 - baseline.sd/3)*3/4; target.width
+target.width <- (proc.sd/2 - proc.sd/3)*3/4; target.width
 for (prop.df in meas.df:200)
 {
   prop.ci.width <- sqrt(prop.df*meas.sd^2/qchisq(0.025, prop.df)) - 
@@ -84,12 +87,14 @@ for (prop.df in meas.df:200)
 prop.df
 prop.ci.width
 
+# We get the full data
 measurement2 <- read.table("measurement_2.csv", header=TRUE)
-measurement.full <- rbind(measurement.initial, measurement2)
+measurement.full <- rbind(measurement1, measurement2)
 measurement.full$partnum <- as.factor(measurement.full$partnum)
-measurement.full$period <- as.factor(c(rep(1, 24), rep(2, 8), rep(3,8), rep(2,8), rep(3,8), rep(2,8), rep(3,8)))
+measurement.full$period <- as.factor(c(rep(1, 24), rep(c(rep(2, 8), rep(3,8)), 3)))
 
 # We can run an anova
+tapply(measurement.full$y300, measurement.full$partnum, mean)
 meas.model <- aov(y300 ~ partnum, measurement.full)
 summary(meas.model)
 meas.df <- meas.model$df.residual; meas.df
@@ -101,13 +106,34 @@ plots.base <- ggplot(data=measurement.full) +
   theme(plot.title=element_text(hjust=0.5, face="bold"), 
         axis.title=element_text(size=12))
 
-plots.base + geom_point(mapping=aes(y=y300, x=period, color=partnum)) +
-  ggtitle("Plot of measurements")
+plots.base + geom_point(mapping=aes(y=y300, x=period, color=partnum), alpha=0.6) +
+  ggtitle("Measurements of baseline parts") +
+  xlab("Measurement Period") + 
+  scale_color_discrete(name="Part number",
+                       breaks=c("5823", "1022", "6780"),
+                       labels=c("5823 (max)", "1022 (median)", "6780 (min)"))
 
-ggplot(data=measurement.full, mapping=aes(y=y300, group=partnum)) + geom_boxplot()
-disc <- baseline.sd/sd(resid(meas.model))
+plots.base + geom_boxplot(mapping=aes(y=y300, x=period, color=partnum)) +
+  ggtitle("Measurement of baseline parts") +
+  xlab("Measurement Period") +
+  scale_color_discrete(name="Part number",
+                     breaks=c("5823", "1022", "6780"),
+                     labels=c("5823 (max)", "1022 (median)", "6780 (min)"))
 
-plots.base + geom_point(mapping=aes(y=meas.model$residuals, x=period, color=partnum))
+plots.base + geom_boxplot(mapping=aes(y=meas.model$residuals, x=period, color=partnum), alpha=0.7) +
+  ggtitle("Measurement residuals around part mean") +
+  xlab("Measurement Period") +
+  scale_color_discrete(name="Part number",
+                       breaks=c("5823", "1022", "6780"),
+                       labels=c("5823 (max)", "1022 (median)", "6780 (min)"))
+
+# The discrimination ratio
+process.var <- baseline.sd^2 - var(resid(meas.model)); process.var
+process.sd <- sqrt(process.var); process.sd
+process.sd/sd(resid(meas.model))
+
+p2p.sd <- 2.774
+process.p2p.sd <- sqrt(p2p.sd^2 - var(resid(meas.model))); process.p2p.sd
 
 hour.model <- aov(y300 ~ partnum + period, measurement.full)
 summary(hour.model)
