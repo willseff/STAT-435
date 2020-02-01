@@ -15,23 +15,24 @@ ggplot(data=data.m) + geom_boxplot(aes(x=variable, y=value))
 model <- lm(y300 ~ y200, data)
 
 # lm equation in string format
-eq <- paste('x =',
+eq <- paste('y =',
             format(coef(model)[1], digits=3),
             '+',
             format(coef(model)[2], digits=3),
             '* x')
+
 # plot
 plots.base + geom_point(aes(x=y200, y=y300), color="blue", alpha=0.7, size=1) +
   ggtitle("y300 vs y200") + 
   geom_smooth(method='lm', aes(x=y200, y=y300), se=FALSE) +
-  geom_text(x = -4, y = 5, label = eq, parse = TRUE) +
+  annotate('text', label=eq, x=-4, y=5) +
   geom_hline(yintercept=-10, color="#747474", linetype="dashed") +
   geom_hline(yintercept=10, color="#747474", linetype="dashed")
 
 # lm mode for y200 vs y100
 model <- lm(y200 ~ y100, data)
 # lm equation in string format
-eq <- paste('x =',
+eq <- paste('y =',
             format(coef(model)[1], digits=3),
             '+',
             format(coef(model)[2], digits=3),
@@ -39,10 +40,21 @@ eq <- paste('x =',
 
 # plot
 plots.base + geom_point(aes(x=y100, y=y200), color="blue", alpha=0.7, size=1) +
-  ggtitle("y200 vs y100") + 
-  geom_smooth(method='lm', aes(x=y200, y=y100), se=FALSE) +
-  geom_text(x = -4, y = 5, label = eq, parse = TRUE)
+  ggtitle("y200 vs y100") +
+  annotate('text', label=eq, x=-3, y=6) +
+  geom_smooth(method='lm', aes(x=y200, y=y100), se=FALSE) + 
+  xlim(-5,5)
 
-#anova analysis
-model <- lm(y300 ~ partnum, data)
+#anova analysis of y300 by hour
+data$hour <- data$partnum %/% 60
+model <- lm(y300 ~ as.factor(hour), data)
 summary(aov(model))
+
+# plot by hour of y300
+plots.base + geom_point(aes(x=hour, y=y300))
+
+# timeseries plot
+
+# anova on y200
+
+
