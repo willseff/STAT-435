@@ -1,5 +1,5 @@
 # read data
-data <- read.delim("~/Documents/GitHub/STAT-435/DominantCauseSearch/elimination_1.csv")
+data <- read.delim("elimination_1.csv")
 
 plots.base <- ggplot(data=data) + 
   theme(plot.title=element_text(hjust=0.5, face="bold"), 
