@@ -63,8 +63,10 @@ summary(aov(model))
 model <- lm(y200 ~ as.factor(hour), data)
 summary(aov(model))
 
-# Prep for the multivari plot
+# Prep for the multivariate plot
+# new df
 hours.df <- data.frame(hour=unique(data$hour))
+# columns for the average value of each output for each hour
 hours.df$y300.avg <- sapply(hours.df$hour, 
                             function(x){
                               return(mean(subset(data, hour==x)$y300))
@@ -80,11 +82,10 @@ hours.df$y100.avg <- sapply(hours.df$hour,
                             })
 
 # plot by hour of y300
+# unable to produce legend
 ggplot() + 
   geom_point(data=data, aes(x=hour, y=y300),color="blue", alpha=0.7, size=1) + 
   geom_line(data=hours.df, aes(x=hour, y=y300.avg), color="blue") + 
-  theme(plot.title=element_text(hjust=0.5, face="bold"), 
-        axis.title=element_text(size=12)) +
   geom_point(data=data, aes(x=hour, y=y200),color="pink", alpha=1, size=1) +
   geom_line(data=hours.df, aes(x=hour, y=y200.avg), color="pink") +
   geom_point(data=data, aes(x=hour, y=y100),color="green", alpha=1, size=1) +
