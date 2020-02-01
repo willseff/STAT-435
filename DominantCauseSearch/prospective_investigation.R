@@ -1,5 +1,5 @@
 # read data
-data <- read.delim("~/Documents/GitHub/STAT-435/search_for_dominant_cause/elimination.csv")
+data <- read.delim("~/Documents/GitHub/STAT-435/DominantCauseSearch/elimination_1.csv")
 
 plots.base <- ggplot(data=data) + 
   theme(plot.title=element_text(hjust=0.5, face="bold"), 
@@ -22,7 +22,7 @@ plots.base + geom_point(aes(x=y200, y=y300), color="blue", alpha=0.7, size=1) +
   geom_hline(yintercept=-10, color="#747474", linetype="dashed") +
   geom_hline(yintercept=10, color="#747474", linetype="dashed")
 
-
+# lm mode for y200 vs y100
 model <- lm(y200 ~ y100, data)
 # lm equation in string format
 eq <- paste('x =',
@@ -37,5 +37,6 @@ plots.base + geom_point(aes(x=y100, y=y200), color="blue", alpha=0.7, size=1) +
   geom_smooth(method='lm', aes(x=y200, y=y100), se=FALSE) +
   geom_text(x = -4, y = 5, label = eq, parse = TRUE)
 
+#anova analysis
 model <- lm(y300 ~ partnum, data)
 summary(aov(model))
