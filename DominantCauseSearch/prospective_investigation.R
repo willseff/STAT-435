@@ -1,15 +1,24 @@
 # read data
-data <- read.delim("elimination_1.csv")
+data1 <- read.delim("elimination_1.csv")
+data2 <- read.delim("elimination_2.csv")
+
+data <- rbind(data1,data2)
 
 plots.base <- ggplot(data=data) + 
   theme(plot.title=element_text(hjust=0.5, face="bold"), 
         axis.title=element_text(size=12))
 
-#boxplot
+#boxplot by output (y100,y200,y300)
 #melt data
 data.m <- melt(data,id.vars='partnum', measure.vars=c('y100','y200','y300'))
 #plot
 ggplot(data=data.m) + geom_boxplot(aes(x=variable, y=value))
+
+#boxplot by hour
+data$hour = data$partnum %% 60
+data.m <- melt(data,id.vars='hour', measure.vars=c('y100','y200','y300'))
+ggplot(data=data.m) + geom_boxplot(aes(x=as.factor(hour), y=value)) + 
+  xlab('hour') + ggtitle('Boxpot of Output by Hour')
 
 # lm model for y300 vs y200
 model <- lm(y300 ~ y200, data)
@@ -50,11 +59,40 @@ data$hour <- data$partnum %/% 60
 model <- lm(y300 ~ as.factor(hour), data)
 summary(aov(model))
 
+#anova analysis of y200 by hour
+model <- lm(y200 ~ as.factor(hour), data)
+summary(aov(model))
+
+# Prep for the multivari plot
+hours.df <- data.frame(hour=unique(data$hour))
+hours.df$y300.avg <- sapply(hours.df$hour, 
+                            function(x){
+                              return(mean(subset(data, hour==x)$y300))
+                            })
+hours.df$y200.avg <- sapply(hours.df$hour, 
+                            function(x){
+                              return(mean(subset(data, hour==x)$y200))
+                            })
+
+hours.df$y100.avg <- sapply(hours.df$hour, 
+                            function(x){
+                              return(mean(subset(data, hour==x)$y100))
+                            })
+
 # plot by hour of y300
-plots.base + geom_point(aes(x=hour, y=y300))
+ggplot() + 
+  geom_point(data=data, aes(x=hour, y=y300),color="blue", alpha=0.7, size=1) + 
+  geom_line(data=hours.df, aes(x=hour, y=y300.avg), color="blue") + 
+  theme(plot.title=element_text(hjust=0.5, face="bold"), 
+        axis.title=element_text(size=12)) +
+  geom_point(data=data, aes(x=hour, y=y200),color="pink", alpha=1, size=1) +
+  geom_line(data=hours.df, aes(x=hour, y=y200.avg), color="pink") +
+  geom_point(data=data, aes(x=hour, y=y100),color="green", alpha=1, size=1) +
+  geom_line(data=hours.df, aes(x=hour, y=y100.avg), color="green") +
+  ylab('Value') + xlab('Hour') + ggtitle('Multivariate Plot of Output')
 
-# timeseries plot
 
-# anova on y200
+
+
 
 
