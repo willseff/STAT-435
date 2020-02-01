@@ -5,6 +5,12 @@ plots.base <- ggplot(data=data) +
   theme(plot.title=element_text(hjust=0.5, face="bold"), 
         axis.title=element_text(size=12))
 
+#boxplot
+#melt data
+data.m <- melt(data,id.vars='partnum', measure.vars=c('y100','y200','y300'))
+#plot
+ggplot(data=data.m) + geom_boxplot(aes(x=variable, y=value))
+
 # lm model for y300 vs y200
 model <- lm(y300 ~ y200, data)
 
