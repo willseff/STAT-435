@@ -69,7 +69,7 @@ model <- lm(y200 ~ as.factor(hour), data)
 summary(aov(model))
 
 #anova analyais of y100 by hour
-model <- lm(y200 ~ as.factor(hour), data)
+model <- lm(y100 ~ as.factor(hour), data)
 summary(aov(model))
 
 
