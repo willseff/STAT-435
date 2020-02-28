@@ -1,10 +1,14 @@
+<<<<<<< Updated upstream
 # read data
 data1 <- read.delim("elimination_1.csv")
 data2 <- read.delim("elimination_2.csv")
+data <- rbind(data1, data2)
+data$hour <- data$partnum %/% 60
+unique(data$hour)
 
-data <- rbind(data1,data2)
-
-plots.base <- ggplot(data=data)
+plots.base <- ggplot(data=data) + 
+  theme(plot.title=element_text(hjust=0.5, face="bold"), 
+        axis.title=element_text(size=12))
 
 #boxplot by output (y100,y200,y300)
 #melt data
@@ -14,7 +18,6 @@ ggplot(data=data.m) + geom_boxplot(aes(x=variable, y=value)) +
   ggtitle('Boxplot of Data by Output') + ylab('Value') + xlab('Output')
 
 #boxplot by hour
-data$hour = data$partnum %% 60
 data.m <- melt(data,id.vars='hour', measure.vars=c('y100','y200','y300'))
 ggplot(data=data.m) + geom_boxplot(aes(x=as.factor(hour), y=value)) + 
   xlab('hour') + ggtitle('Boxpot of Output by Hour')
@@ -101,9 +104,3 @@ ggplot() +
   geom_point(data=data, aes(x=hour, y=y100),color="green", alpha=1, size=1) +
   geom_line(data=hours.df, aes(x=hour, y=y100.avg), color="green") +
   ylab('Value') + xlab('Hour') + ggtitle('Multivariate Plot of Output')
-
-
-
-
-
-

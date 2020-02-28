@@ -48,15 +48,17 @@ hours.df$y300.avg <- sapply(hours.df$hour,
                             })
 
 # Multivari plot by hour
-plots.base + geom_point(aes(y=y300, x=partnum), color="blue", alpha=0.3, size=1, show.legend=TRUE) +
+plots.base + geom_point(aes(y=y300, x=partnum/60), color="blue", alpha=0.3, size=1, show.legend=TRUE) +
   geom_line(data=hours.df, 
-            mapping=aes(y=y300.avg, x=as.integer(hour)*60),
+            mapping=aes(y=y300.avg, x=as.integer(hour)),
             colour="#EE4422", size=1, alpha=0.7, show.legend=FALSE) +
   geom_point(data=hours.df, 
-             mapping=aes(y=y300.avg, x=as.integer(hour)*60),
+             mapping=aes(y=y300.avg, x=as.integer(hour)),
              colour="red", size=2, alpha=0.7, show.legend=TRUE) +
-  xlab("Part number") +
-  ggtitle("Time series of output variable y300\nover 5 days of observation") +
+  xlab("Hour") +
+  #xlab("Part number") +
+  ggtitle("Time series of output variable y300") +
+  #ggtitle("Time series of output variable y300\nover 5 days of observation") +
   geom_hline(yintercept=-10, color="#747474", linetype="dashed") +
   geom_hline(yintercept=10, color="#747474", linetype="dashed")
 
@@ -80,6 +82,7 @@ plots.base + geom_boxplot(aes(y=y300, x=as.factor(shift.day))) +
   xlab("Shift") + ylab("y300") +
   ggtitle("Distribution of output variable y300 by shift (by day)")
 
+anova(lm(y300 ~ as.factor(hour) + as.factor(day), data=data))
 
 # There was a lot of hourly variability from the multivari chart. 
 # We can check this with a linear model. 
@@ -99,8 +102,9 @@ plots.base + geom_point(aes(y=hour.model$residuals, x=partnum), color="blue", al
 shift.model <- lm(y300 ~ as.factor(shift), data)
 summary(shift.model)
 
-day.model <- lm(y300 ~ as.factor(day), data)
+day.model <- lm(y300 ~ as.factor(day) + as.factor(hour), data)
 summary(day.model)
+anova(day.model)
 
 shift.day.model <- lm(y300 ~ as.factor(shift.day), data)
 summary(shift.day.model)
