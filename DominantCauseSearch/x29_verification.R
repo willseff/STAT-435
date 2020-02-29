@@ -14,11 +14,14 @@ individual.x29.df$type <- c(rep("Prospective", nrow(individual.df)))
 
 plots.base <- ggplot() + 
   theme(plot.title=element_text(hjust=0.5, face="bold"), 
-        axis.title=element_text(size=12))
+        axis.title=element_text(size=12)) 
 
 # plot of data from experimental investigation
 plots.base + geom_point(aes(x=x29, y=y300), verification.df) + 
-  ggtitle('y300 vs x29 (Experimental Investigation')
+  ggtitle('y300 vs x29 (Experimental Investigation)') +
+  xlim(-7, 10) + 
+  geom_hline(aes(yintercept=13.3), linetype='dashed') +
+  geom_hline(aes(yintercept=-13.95), linetype='dashed')
 
 both.df <- rbind(investigation.df[c("y200", "x29")], verification.df[c("y200", "x29")])
 both.df$type <- c(rep("Prospective", nrow(investigation.df)), 
@@ -32,6 +35,5 @@ plots.base + geom_point(aes(x=x29, y=y200, color=type), all.df) +
   geom_smooth(aes(x=x29, y=y200), method='lm', formula= y~x, all.df) + 
   ggtitle('y200 vs x29(Power Level)')
 
-# plot of just data from experimental investigation
 
 
