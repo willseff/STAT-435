@@ -112,3 +112,12 @@ data$shift.day
 
 summary(shift.day.model)$r.squared - summary(day.model)$r.squared
 summary(hour.model)$r.squared - summary(shift.day.model)$r.squared
+
+
+anova.model <- aov(y300 ~  as.factor(day) + as.factor(shift.day) + as.factor(hour), data=data)
+summary(anova.model)
+tot <- 1056 + 1646 + 3730 + 3462; tot
+1056/tot # Day
+1646/tot # shift
+3730/tot # Hour
+3462/tot # Part-to-part

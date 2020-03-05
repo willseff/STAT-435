@@ -7,3 +7,6 @@ summary(linked.df)
 
 
 y200.model <- lm(y300~y200, data=linked.df)
+predict(y200.model, 
+        data.frame(y200=c(-7.7, 8.10)), 
+        interval="prediction")
