@@ -1,4 +1,4 @@
-<<<<<<< Updated upstream
+library(reshape2)
 # read data
 data1 <- read.delim("elimination_1.csv")
 data2 <- read.delim("elimination_2.csv")
@@ -10,6 +10,17 @@ plots.base <- ggplot(data=data) +
   theme(plot.title=element_text(hjust=0.5, face="bold"), 
         axis.title=element_text(size=12))
 
+summary(data1)
+
+plots.base + geom_point(aes(y=y300, x=partnum/60), data1) +
+  labs(title="Time series of y300 - First Obesrvation",
+       x="Hour") +
+  geom_hline(yintercept=-10, color="#747474", linetype="dashed") +
+  geom_hline(yintercept=10, color="#747474", linetype="dashed") +
+  geom_hline(yintercept=-13.95, color="#747474", linetype="solid") +
+  geom_hline(yintercept=13.30, color="#747474", linetype="solid")
+
+nrow(data)
 #boxplot by output (y100,y200,y300)
 #melt data
 data.m <- melt(data,id.vars='partnum', measure.vars=c('y100','y200','y300'))
@@ -26,11 +37,11 @@ ggplot(data=data.m) + geom_boxplot(aes(x=as.factor(hour), y=value)) +
 model <- lm(y300 ~ y200, data)
 
 # lm equation in string format
-eq <- paste('y =',
+eq <- paste('y300 =',
             format(coef(model)[1], digits=3),
             '+',
             format(coef(model)[2], digits=3),
-            '* x')
+            '* y200')
 #r squared value
 r2.value = summary(model)$r.squared
 r2.value
@@ -40,7 +51,33 @@ ggplot(data=data) + geom_point(aes(x=y200, y=y300), color="blue", alpha=0.7, siz
   geom_smooth(method='lm', aes(x=y200, y=y300), se=FALSE) +
   annotate('text', label=eq, x=-4, y=5) +
   geom_hline(yintercept=-10, color="#747474", linetype="dashed") +
-  geom_hline(yintercept=10, color="#747474", linetype="dashed")
+  geom_hline(yintercept=10, color="#747474", linetype="dashed") +
+  geom_hline(yintercept=-13.95, color="#747474", linetype="solid") +
+  geom_hline(yintercept=13.30, color="#747474", linetype="solid")
+
+# lm for y300 vs y100
+model <- lm(y300 ~ y100, data)
+# lm equation in string format
+eq <- paste('y300 =',
+            format(coef(model)[1], digits=3),
+            '+',
+            format(coef(model)[2], digits=3),
+            '* y100')
+
+# r squared value
+r2.value = summary(model)$r.squared
+r2.value
+
+# plot
+ggplot(data=data) + geom_point(aes(x=y100, y=y300), color="blue", alpha=0.7, size=1) +
+  ggtitle("y300 Output vs y100 Output") + 
+  geom_smooth(method='lm', aes(x=y100, y=y300), se=FALSE) +
+  annotate('text', label=eq, x=-2, y=7) +
+  geom_hline(yintercept=-10, color="#747474", linetype="dashed") +
+  geom_hline(yintercept=10, color="#747474", linetype="dashed") +
+  geom_hline(yintercept=-13.95, color="#747474", linetype="solid") +
+  geom_hline(yintercept=13.30, color="#747474", linetype="solid")
+
 
 # lm mode for y200 vs y100
 model <- lm(y200 ~ y100, data)

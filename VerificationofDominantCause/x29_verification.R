@@ -2,9 +2,12 @@ library(ggplot2)
 
 # The second longer observation of just the x29 input
 investigation.df <- read.delim("x29_prospective2.csv")
+summary(investigation.df)
+head(investigation.df)
 
 # The experimental data
 verification.df <- read.delim("x29_verification.csv")
+summary(verification.df)
 
 # The data from the individual causes investigation
 individual.df <- read.delim("individual_causes.csv")
@@ -36,4 +39,10 @@ plots.base + geom_point(aes(x=x29, y=y200, color=type), all.df) +
   ggtitle('y200 vs x29(Power Level)')
 
 
+experim.lm <- lm(y300~as.factor(x29), data=verification.df)
+summary(experim.lm)
+predict(experim.lm, data.frame(x29=as.factor(c(-5, 8))), interval="confidence") 
 
+anova(experim.lm)
+
+max(verification.df$y300) - min(verification.df$y300) 

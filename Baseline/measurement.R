@@ -3,25 +3,19 @@
 
 library(ggplot2)
 
-baseline.data <- read.table("Baseline.csv", header=TRUE)
-head(baseline.data)
+baseline <- read.table("Baseline.csv", header=TRUE)
+head(baseline)
 
 # In class, we called a "good" measurement error as less than 1/3 of the total process
 # error.
-baseline.sd <- sd(baseline.data$y300); baseline.sd
+baseline.sd <- sd(baseline$y300); baseline.sd
 # A 95% confidence interval for the standard deviation
-baseline.df <- length(baseline.data$y300) - 1
+baseline.df <- length(baseline$y300) - 1
 baseline.ci.lower <- sqrt(baseline.df*baseline.sd^2/qchisq(0.975, baseline.df)); baseline.ci.lower
 baseline.ci.upper <- sqrt(baseline.df*baseline.sd^2/qchisq(0.025, baseline.df)); baseline.ci.upper
-# So our 95% confidence interval for the standard deviation is [4.27, 4.85]
-# We consider a measurement standard error greater than 1/2 of the total to be the dominant cause,
-# and a standard error greater than 1/3 of the total to be a problem that needs to be addressed
-# So we can rule out measurement if measurement variation is less than 1/3 of total variation
-meas.max <- baseline.sd/3; meas.max
-# So the target value we want to discriminate is 1/3 of the total, or 1.515
 
 # Recall, our baseline data was normal-ish, with a few values lying outside spec
-ggplot(data=baseline.data, mapping=aes(x=y300)) +
+ggplot(data=baseline, mapping=aes(x=y300)) +
   geom_histogram(color="#CCCCCC", fill="#686868") +
   geom_vline(xintercept=-10, color="#747474", linetype="dashed") +
   geom_vline(xintercept=10, color="#747474", linetype="dashed") +
@@ -31,12 +25,10 @@ ggplot(data=baseline.data, mapping=aes(x=y300)) +
   xlab("Observed y300") +
   ylab("Frequency")
 
-
-y300.med <- median(data$y300); y300.med
-
-min.part <- data$partnum[which.min(data$y300)]; min.part
-max.part <- data$partnum[which.max(data$y300)]; max.part
-med.part <- data$partnum[data$y300 == median(data$y300)][1]; med.part
+y300.med <- median(baseline$y300); y300.med
+min.part <- baseline$partnum[which.min(baseline$y300)]; min.part; min(baseline$y300)
+max.part <- baseline$partnum[which.max(baseline$y300)]; max.part; max(baseline$y300)
+med.part <- baseline$partnum[baseline$y300 == y300.med][1]; med.part; y300.med
 
 
 # Our first go of measuring the data, just to assess whether we need a bigger sample size
@@ -128,13 +120,13 @@ plots.base + geom_boxplot(mapping=aes(y=meas.model$residuals, x=period, color=pa
                        labels=c("5823 (max)", "1022 (median)", "6780 (min)"))
 
 # The discrimination ratio
-process.var <- baseline.sd^2 - var(resid(meas.model)); process.var
+process.var <- baseline.sd^2 - meas.sd^2; process.var
 process.sd <- sqrt(process.var); process.sd
-process.sd/sd(resid(meas.model))
+process.sd/meas.sd
 
 p2p.sd <- 2.774
 process.p2p.sd <- sqrt(p2p.sd^2 - var(resid(meas.model))); process.p2p.sd
 
-hour.model <- aov(y300 ~ partnum + period, measurement.full)
+hour.model <- aov(y300 ~ partnum * period, measurement.full)
 summary(hour.model)
 
