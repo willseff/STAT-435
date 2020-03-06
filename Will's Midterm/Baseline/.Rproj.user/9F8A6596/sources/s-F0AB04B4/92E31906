@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1583523862202.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3861103946",
+    "id" : "92E31906",
+    "lastKnownWriteTime" : 1583527824,
+    "last_content_update" : 1583527824501,
+    "path" : "~/Desktop/stat_435_take_home_midterm/Measurement/measurement.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "41,0",
+        "scrollLine" : "27",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

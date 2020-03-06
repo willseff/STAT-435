@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1583526834843.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "6A04FF3B",
+    "lastKnownWriteTime" : 1580482719,
+    "last_content_update" : 1580482719,
+    "path" : "~/Documents/GitHub/STAT-435/Baseline/measurement.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "138,19",
+        "scrollLine" : "123"
+    },
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

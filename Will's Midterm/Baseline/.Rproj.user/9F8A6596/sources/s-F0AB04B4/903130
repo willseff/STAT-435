@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1583523849877.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "341050258",
+    "id" : "903130",
+    "lastKnownWriteTime" : 1583527835,
+    "last_content_update" : 1583527835051,
+    "path" : "~/Desktop/stat_435_take_home_midterm/Baseline/baseline.R",
+    "project_path" : "baseline.R",
+    "properties" : {
+        "cursorPosition" : "17,0",
+        "scrollLine" : "11"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
