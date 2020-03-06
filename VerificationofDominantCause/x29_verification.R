@@ -35,8 +35,5 @@ plots.base + geom_point(aes(x=x29, y=y200, color=type), all.df) +
   geom_smooth(aes(x=x29, y=y200), method='lm', formula= y~x, all.df) + 
   ggtitle('y200 vs x29(Power Level)')
 
-# anova x29 ~ y300
-model <- lm(y300 ~ x29, verification.df)
-summary(aov(model))
 
 
