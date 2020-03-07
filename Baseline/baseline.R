@@ -1,37 +1,49 @@
 library(ggplot2)
 library(ggthemes)
 
+##################### initial baseline study ##########################
+
+# initial data 
 initial <- read.delim("baseline_initial.csv")
 initial2 <- read.delim("initial2.csv")
 
+# intitial data engineering
 initial <- rbind(initial, initial2)
 initial$hour <- as.integer(initial$partnum/60)
-model <- lm(y300 ~ as.factor(hour), initial)
 
+# model with hour
+model <- lm(y300 ~ as.factor(hour) + as.factor(shift), initial)
 aov <- summary(aov(model))
+aov
 
-ggplot(initial, aes(x = hour, y = y300, group = hour)) +
-  geom_boxplot()
-
-ggplot(initial, aes(x = hour, y = y300)) + geom_point()
-
-ggplot(initial, aes(x = partnum, y = y300)) + geom_point()
-
-initial$shift.min <- initial$partnum %% 240
-initial$shift.day <- initial$shift + (initial$daycount-1)*3
-model.shift.min <- lm(y300 ~ shift.min + as.factor(shift.day) , initial)
-summary(model.shift.min)
-summary(aov(model.shift.min))
 # pooled standard deviation
 sqrt(aov[1][[1]][[3]][2])
 # mean
-mean(baseline.initial$y300)
+mean(initial$y300)
 
 #groupby mean
-aggregate(baseline.initial[, 4], list(baseline.initial$hour), mean)
+aggregate(initial[, 4], list(initial$hour), mean)
 
-# actual baseline study data
+# boxplot of initial data by hour
+ggplot(initial, aes(x = hour, y = y300, group = hour)) +
+  geom_boxplot()
+
+# plot of initial data by hour
+ggplot(initial, aes(x = hour, y = y300)) + geom_point()
+
+# plot of initial data by partnum
+ggplot(initial, aes(x = partnum, y = y300)) + geom_point()
+
+############## actual baseline study data ######################
+
+# clear environment
+remove(list = ls())
+
+#import all baseline data 
 baseline <- read.delim("baseline.csv")
+initial <- read.delim("baseline_initial.csv")
+initial2 <- read.delim("initial2.csv")
+
 # add initial study data to baseline df
 baseline <- rbind(initial,initial2,baseline)
 
@@ -40,13 +52,12 @@ baseline$hour <- as.integer(baseline$partnum/60)
 baseline$shift.day <- baseline$shift + (baseline$daycount-1)*3
 baseline$minute <- baseline$partnum%%60
 
-summary(baseline)
+# theme for ggplots
+gg.base <- ggplot(baseline) + theme_bw() + scale_shape_cleveland()
 
-#histogram of all data
-ggplot(baseline, aes(x=y300)) + geom_histogram(bins=40) +
-  ggtitle('Histogram of y300 Values') + 
-  theme_bw() + 
-  scale_shape_cleveland()
+# histogram of all data
+gg.base + geom_histogram(aes(x=y300),bins=40) +
+  ggtitle('Histogram of y300 Values')
 
 # plot of all points
 ggplot(baseline, aes(x = partnum, y = y300)) + 
@@ -54,6 +65,16 @@ ggplot(baseline, aes(x = partnum, y = y300)) +
   theme_bw() + 
   scale_shape_cleveland() + 
   ggtitle('Plot of All data')
+
+# mean median and standard deviation
+summary(baseline$y300)
+sd(baseline$y300)
+max(baseline$y300)
+min(baseline$y300)
+
+# number of observationf outside of spec
+outside.spec <- baseline[baseline$y300>10 | baseline$y300< -10,]
+length(outside.spec)
 
 # box plot by shift
 ggplot(baseline, aes(x = shift.day, y = y300, group = shift.day)) +
@@ -95,8 +116,6 @@ min(baseline$y300)
 #nested anova model
 nested.model <- lm(y300 ~ as.factor(daycount)/as.factor(shift.day)/as.factor(hour), baseline)
 summary(aov(nested.model))
-
-sd(baseline$y300)
 
 # minute analysis
 ggplot(baseline, aes(x=minute)) + 
