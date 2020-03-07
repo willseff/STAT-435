@@ -72,7 +72,7 @@ sd(baseline$y300)
 max(baseline$y300)
 min(baseline$y300)
 
-# number of observationf outside of spec
+# number of observations outside of spec
 outside.spec <- baseline[baseline$y300>10 | baseline$y300< -10,]
 length(outside.spec)
 
@@ -88,6 +88,22 @@ ggplot(baseline, aes(x = daycount, y = y300, group = daycount)) +
   theme_bw() + 
   scale_shape_cleveland() + 
   ggtitle('Boxplot by Day')
+
+# boxplot by hour
+gg.base + geom_boxplot(aes(x=as.factor(hour), y=y300, group=(hour))) +
+  annotate("rect", xmin = 0.5, xmax = 4.5, ymin = -1, ymax = 15,
+            alpha=0.05, color="blue", fill="blue") +
+  annotate("rect", xmin = 4.6, xmax = 8.5, ymin = -8, ymax = 7,
+           alpha=0.05, color="blue", fill="blue") +
+  annotate("rect", xmin = 8.6, xmax = 10.5, ymin = -13, ymax = -3,
+           alpha=0.05, color="blue", fill="blue") +
+  annotate("rect", xmin = 20.5, xmax = 22.5, ymin = -8, ymax = 10,
+           alpha=0.05, color="blue", fill="blue") +
+  annotate("text",x = 10, y = 11, label = "Shifts") +
+  ggtitle('Boxplot by Hour') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  annotate("segment", x = 8.3, xend = 4.6, y = 11, yend = 10,
+           colour = "blue")
 
 # dotplot by hour
 ggplot(baseline, aes(x = hour, y = y300, group = hour)) + 
@@ -108,16 +124,13 @@ ggplot(baseline, aes(x=shift.day, y=y300, group = shift.day)) +
 
 # violin plot by hour
 ggplot(baseline, aes(x=hour, y=y300, group=hour)) +
-  geom_violin()
-
-max(baseline$y300)
-min(baseline$y300)
+  geom_violin() 
 
 #nested anova model
 nested.model <- lm(y300 ~ as.factor(daycount)/as.factor(shift.day)/as.factor(hour), baseline)
 summary(aov(nested.model))
 
-# minute analysis
+# minute analysis (not used in report)
 ggplot(baseline, aes(x=minute)) + 
   geom_histogram(bins=40) +
   theme_bw() + 
