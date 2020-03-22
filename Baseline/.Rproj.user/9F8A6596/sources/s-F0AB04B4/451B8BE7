@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1583535209874.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "451B8BE7",
+    "lastKnownWriteTime" : 1583545031,
+    "last_content_update" : 1583545031280,
+    "path" : "~/Desktop/stat_435_take_home_midterm/Search for the Dominant Cause/transmit.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "20,15",
+        "scrollLine" : "6",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 10,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,123 +1,146 @@
-# STAT 435 Team 2
-# Establishing the Baseline (W1) - Analysis code
-
 library(ggplot2)
+library(ggthemes)
 
-data <- read.table("Baseline.csv", sep="\t", header=TRUE)
-data$day <- data$daycount
-data$hour <- data$partnum %/% 60
-data$shift.day <- data$shift + (data$daycount-1)*3
+##################### initial baseline study ##########################
 
-head(data)
+# initial data 
+initial <- read.delim("baseline_initial.csv")
+initial2 <- read.delim("initial2.csv")
 
-y300.mean <- mean(data$y300); y300.mean
-y300.sd <- sd(data$y300); y300.sd
+# intitial data engineering
+initial <- rbind(initial, initial2)
+initial$hour <- as.integer(initial$partnum/60)
 
-ci.halfwidth <- qnorm(0.975) * y300.sd / sqrt(length(data$y300))
-y300.mean - ci.halfwidth; y300.mean + ci.halfwidth
+# model with hour
+model <- lm(y300 ~ as.factor(hour) + as.factor(shift), initial)
+aov <- summary(aov(model))
+aov
 
-y300.min <- min(data$y300); y300.min
-y300.max <- max(data$y300); y300.max
+# pooled standard deviation
+sqrt(aov[1][[1]][[3]][2])
+# mean
+mean(initial$y300)
 
-num.outof.spec <- sum((data$y300 > 10) | (data$y300 < -10)); num.outof.spec
-num.outof.spec/ length(data$y300)
+#groupby mean
+aggregate(initial[, 4], list(initial$hour), mean)
 
-# Histogram showing distribution of the data
-ggplot(data=data, mapping=aes(x=y300)) +
-  geom_histogram(color="#CCCCCC", fill="#686868") +
-  geom_vline(xintercept=-10, color="#747474", linetype="dashed") +
-  geom_vline(xintercept=10, color="#747474", linetype="dashed") +
-  theme(plot.title=element_text(hjust=0.5, face="bold"), 
-        axis.title=element_text(size=12)) +
-  ggtitle("Distribution of observed values\nwith target specification limits") +
-  xlab("Observed y300") +
-  ylab("Frequency")
+# boxplot of initial data by hour
+ggplot(initial, aes(x = hour, y = y300, group = hour)) +
+  geom_boxplot()
 
-# A base theme so all plots look consistent
-plots.base <- ggplot(data=data) + 
-  theme(plot.title=element_text(hjust=0.5, face="bold"), 
-        axis.title=element_text(size=12)) +
-  geom_hline(yintercept=y300.min, color="#747474") +
-  geom_hline(yintercept=y300.max, color="#747474")
+# plot of initial data by hour
+ggplot(initial, aes(x = hour, y = y300)) + geom_point()
 
-# Prep for the multivari plot
-hours.df <- data.frame(hour=unique(data$hour))
-hours.df$y300.avg <- sapply(hours.df$hour, 
-                            function(x){
-                              return(mean(subset(data, hour==x)$y300))
-                            })
+# plot of initial data by partnum
+ggplot(initial, aes(x = partnum, y = y300)) + geom_point()
 
-# Multivari plot by hour
-plots.base + geom_point(aes(y=y300, x=partnum/60), color="blue", alpha=0.3, size=1, show.legend=TRUE) +
-  geom_line(data=hours.df, 
-            mapping=aes(y=y300.avg, x=as.integer(hour)),
-            colour="#EE4422", size=1, alpha=0.7, show.legend=FALSE) +
-  geom_point(data=hours.df, 
-             mapping=aes(y=y300.avg, x=as.integer(hour)),
-             colour="red", size=2, alpha=0.7, show.legend=TRUE) +
-  xlab("Hour") +
-  #xlab("Part number") +
-  ggtitle("Time series of output variable y300") +
-  #ggtitle("Time series of output variable y300\nover 5 days of observation") +
-  geom_hline(yintercept=-10, color="#747474", linetype="dashed") +
-  geom_hline(yintercept=10, color="#747474", linetype="dashed")
+############## actual baseline study data ######################
 
-# Boxplot by day
-plots.base + geom_boxplot(aes(y=y300, x=as.factor(day))) +
-  xlab("Day") + ylab("y300") +
-  ggtitle("Distribution of output variable y300 by day")
+# clear environment
+remove(list = ls())
 
-# Boxplot by shift
-plots.base + geom_boxplot(aes(y=y300, x=as.factor(shift))) +
-  xlab("Shift") + ylab("y300") +
-  ggtitle("Distribution of output variable y300 by shift")
+#import all baseline data 
+baseline <- read.delim("baseline.csv")
+initial <- read.delim("baseline_initial.csv")
+initial2 <- read.delim("initial2.csv")
 
-# Boxplot by hour
-plots.base + geom_boxplot(aes(y=y300, x=as.factor(hour))) +
-  xlab("Hour") + ylab("y300") +
-  ggtitle("Distribution of output variable y300 by hour")
+# add initial study data to baseline df
+baseline <- rbind(initial,initial2,baseline)
 
-# Boxplot by shift by day
-plots.base + geom_boxplot(aes(y=y300, x=as.factor(shift.day))) +
-  xlab("Shift") + ylab("y300") +
-  ggtitle("Distribution of output variable y300 by shift (by day)")
+# data engineering
+baseline$hour <- as.integer(baseline$partnum/60)
+baseline$shift.day <- baseline$shift + (baseline$daycount-1)*3
+baseline$minute <- baseline$partnum%%60
 
-anova(lm(y300 ~ as.factor(hour) + as.factor(day), data=data))
+# theme for ggplots
+gg.base <- ggplot(baseline) + theme_bw() + scale_shape_cleveland()
 
-# There was a lot of hourly variability from the multivari chart. 
-# We can check this with a linear model. 
-# We get an R-squared of 65%: 2/3 of variability can be explained by hour-to-hour 
-# (or on the scale of 4 hours) variation
-hour.model <- lm(y300 ~ as.factor(hour), data)
-summary(hour.model)
-1 - summary(hour.model)$r.squared
+# histogram of all data
+gg.base + geom_histogram(aes(x=y300),bins=40) +
+  ggtitle('Histogram of y300 Values')
 
-plots.base + geom_point(aes(y=hour.model$residuals, x=partnum), color="blue", alpha=0.3, size=1) +
-  xlab("Part number") +
-  ylab("Hour-adjusted y300") +
-  ggtitle("Residuals of linear model of output y300 on hour\nover 5 days of observation") +
-  geom_hline(yintercept=-10, color="#747474", linetype="dashed") +
-  geom_hline(yintercept=10, color="#747474", linetype="dashed")
+# plot of all points
+ggplot(baseline, aes(x = partnum, y = y300)) + 
+  geom_point() + 
+  theme_bw() + 
+  scale_shape_cleveland() + 
+  ggtitle('Plot of All data')
 
-shift.model <- lm(y300 ~ as.factor(shift), data)
-summary(shift.model)
+# mean median and standard deviation
+summary(baseline$y300)
+sd(baseline$y300)
+max(baseline$y300)
+min(baseline$y300)
 
-day.model <- lm(y300 ~ as.factor(day) + as.factor(hour), data)
-summary(day.model)
-anova(day.model)
+# number of observations outside of spec
+outside.spec <- baseline[baseline$y300>10 | baseline$y300< -10,]
+length(outside.spec)
 
-shift.day.model <- lm(y300 ~ as.factor(shift.day), data)
-summary(shift.day.model)
-data$shift.day
+# box plot by shift
+ggplot(baseline, aes(x = shift.day, y = y300, group = shift.day)) +
+  theme_bw() + 
+  scale_shape_cleveland() +
+  geom_boxplot() + ggtitle('Boxplot by Shift and Day')
 
-summary(shift.day.model)$r.squared - summary(day.model)$r.squared
-summary(hour.model)$r.squared - summary(shift.day.model)$r.squared
+#box plot by day
+ggplot(baseline, aes(x = daycount, y = y300, group = daycount)) +
+  geom_boxplot() + 
+  theme_bw() + 
+  scale_shape_cleveland() + 
+  ggtitle('Boxplot by Day')
 
+# boxplot by hour
+gg.base + geom_boxplot(aes(x=as.factor(hour), y=y300, group=(hour))) +
+  annotate("rect", xmin = 0.5, xmax = 4.5, ymin = -1, ymax = 15,
+            alpha=0.05, color="blue", fill="blue") +
+  annotate("rect", xmin = 4.6, xmax = 8.5, ymin = -8, ymax = 7,
+           alpha=0.05, color="blue", fill="blue") +
+  annotate("rect", xmin = 8.6, xmax = 10.5, ymin = -13, ymax = -3,
+           alpha=0.05, color="blue", fill="blue") +
+  annotate("rect", xmin = 20.5, xmax = 22.5, ymin = -8, ymax = 10,
+           alpha=0.05, color="blue", fill="blue") +
+  annotate("text",x = 10, y = 11, label = "Shifts") +
+  ggtitle('Boxplot by Hour') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  annotate("segment", x = 8.3, xend = 4.6, y = 11, yend = 10,
+           colour = "blue")
 
-anova.model <- aov(y300 ~  as.factor(day) + as.factor(shift.day) + as.factor(hour), data=data)
-summary(anova.model)
-tot <- 1056 + 1646 + 3730 + 3462; tot
-1056/tot # Day
-1646/tot # shift
-3730/tot # Hour
-3462/tot # Part-to-part
+# dotplot by hour
+ggplot(baseline, aes(x = hour, y = y300, group = hour)) + 
+  geom_dotplot(binaxis = "y", dotsize = 1, stackdir = "center", binwidth=0.25) + 
+  ggtitle("Dotplot by Hour") +
+  theme_bw() + 
+  scale_shape_cleveland()
+
+# violin plot by day
+ggplot(baseline, aes(x = daycount, y = y300, group = daycount)) + geom_violin() + 
+  theme_bw() + 
+  scale_shape_cleveland() +
+  ggtitle('Violin plot by Day')
+
+# violin plot by shift
+ggplot(baseline, aes(x=shift.day, y=y300, group = shift.day)) + 
+  geom_violin()
+
+# violin plot by hour
+ggplot(baseline, aes(x=hour, y=y300, group=hour)) +
+  geom_violin() 
+
+#nested anova model
+nested.model <- lm(y300 ~ as.factor(daycount)/as.factor(shift.day)/as.factor(hour), baseline)
+summary(aov(nested.model))
+
+# minute analysis (not used in report)
+ggplot(baseline, aes(x=minute)) + 
+  geom_histogram(bins=40) +
+  theme_bw() + 
+  scale_shape_cleveland() + 
+  ggtitle('Histogram of Minutes')
+
+ggplot(baseline, aes(x=minute,y=y300)) + geom_point() +
+  theme_bw() + 
+  scale_shape_cleveland() + 
+  ggtitle('Part by Minute')
+
+model.minute <- lm(y300 ~ minute, baseline)
+summary(model.minute)
