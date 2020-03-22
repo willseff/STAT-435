@@ -38,13 +38,15 @@ interaction.plot(fact.df$z9, fact.df$z10, fact.df$y200)
 ## to estimate potential quadratic effects
 
 experim.2 <- read.delim("z7-z10.tsv")
+experim.2$z7.c <- experim.2$z7 - median(experim.2$z7)
+experim.2$z10.c <- experim.2$z10 - median(experim.2$z10)
 summary(experim.2)
 
 ggplot(data=experim.2) + geom_point(aes(x=z7, y=y300, color=as.factor(z10)))
 
-poly.model <- lm(y300 ~ poly(z7, z10, degree=2), 
+poly.model <- lm(y300 ~ poly(z7.c, z10.c, degree=2), 
                   data=experim.2)
 summary(poly.model)
 
-interact.model <- lm(y300 ~ z7*z10, data=experim.2)
+interact.model <- lm(y300 ~ z7.c*z10.c, data=experim.2)
 summary(interact.model)
